@@ -2,7 +2,14 @@ import iziToast from 'izitoast';
 import "izitoast/dist/css/iziToast.min.css";
 
 import { getImagesByQuery } from './js/pixabay-api.js';
-import { createGallery, clearGallery, showLoader, hideLoader } from './js/render-functions.js';
+import { 
+  createGallery, 
+  clearGallery, 
+  showLoader, 
+  hideLoader, 
+  showLoadMoreBtn, 
+  hideLoadMoreBtn 
+} from './js/render-functions.js';
 
 const searchForm = document.querySelector('.form');
 const loadMoreBtn = document.querySelector('.load-more-btn');
@@ -27,7 +34,7 @@ async function handleSearch(event) {
 
   page = 1;
   clearGallery();
-  loadMoreBtn.classList.add('is-hidden');
+  hideLoadMoreBtn();
   showLoader();
 
   try {
@@ -42,7 +49,6 @@ async function handleSearch(event) {
     }
 
     createGallery(data.hits);
-
     checkPaginationStatus(data.totalHits);
 
   } catch (error) {
@@ -52,19 +58,16 @@ async function handleSearch(event) {
   }
 }
 
-
 async function handleLoadMore() {
-  page += 1; 
+  page += 1;
   
-  loadMoreBtn.classList.add('is-hidden'); 
+  hideLoadMoreBtn();
+  showLoader();
 
   try {
     const data = await getImagesByQuery(searchQuery, page);
-    
     createGallery(data.hits);
-    
     smoothScroll();
-
     checkPaginationStatus(data.totalHits);
 
   } catch (error) {
@@ -78,22 +81,20 @@ function checkPaginationStatus(totalHits) {
   const maxPages = Math.ceil(totalHits / perPage);
 
   if (page >= maxPages) {
-    loadMoreBtn.classList.add('is-hidden');
+    hideLoadMoreBtn();
     iziToast.info({
       message: "We're sorry, but you've reached the end of search results.",
       position: 'topRight',
     });
   } else {
-    loadMoreBtn.classList.remove('is-hidden');
+    showLoadMoreBtn();
   }
 }
 
 function smoothScroll() {
   const firstGalleryItem = document.querySelector('.gallery-item');
-  
   if (firstGalleryItem) {
     const { height: cardHeight } = firstGalleryItem.getBoundingClientRect();
-    
     window.scrollBy({
       top: cardHeight * 2,
       behavior: 'smooth',
